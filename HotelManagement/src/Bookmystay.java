@@ -1,73 +1,82 @@
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
 /**
- * Model representing a guest's reservation intent.
+ * Custom Exception for domain-specific validation errors.
  */
-class Reservation {
-    private String guestName;
-    private String roomType;
-
-    public Reservation(String guestName, String roomType) {
-        this.guestName = guestName;
-        this.roomType = roomType;
+class InvalidBookingException extends Exception {
+    public InvalidBookingException(String message) {
+        super(message);
     }
-
-    public String getGuestName() { return guestName; }
-    public String getRoomType() { return roomType; }
 }
 
 /**
- * Manager for the FIFO queue.
+ * Validates booking requests before processing.
+ */
+class ReservationValidator {
+    // Note: Case-sensitive as required by the use case
+    private final List<String> validRooms = Arrays.asList("Single", "Double", "Suite");
+
+    public void validate(String guestName, String roomType) throws InvalidBookingException {
+        if (guestName == null || guestName.trim().isEmpty()) {
+            throw new InvalidBookingException("Guest name cannot be empty.");
+        }
+        if (!validRooms.contains(roomType)) {
+            throw new InvalidBookingException("Invalid room type selected.");
+        }
+    }
+}
+
+/**
+ * Component to manage room inventory (Stub for this use case).
+ */
+class RoomInventory {
+    public RoomInventory() {}
+}
+
+/**
+ * Component to manage booking queue (Stub for this use case).
  */
 class BookingRequestQueue {
-    private Queue<Reservation> queue = new LinkedList<>();
-
-    public void addRequest(Reservation request) {
-        queue.add(request);
-    }
-
-    public boolean hasPendingRequests() {
-        return !queue.isEmpty();
-    }
-
-    public Reservation processNextRequest() {
-        return queue.poll();
-    }
+    public BookingRequestQueue() {}
 }
 
 /**
- * MAIN CLASS UseCase5BookingRequestQueue
- * * Use Case 5: Booking Request (First-Come-First-Served)
+ * MAIN CLASS UseCase9ErrorHandlingValidation
+ * Use Case 9: Error Handling & Validation
  */
 public class Bookmystay {
+
     public static void main(String[] args) {
         // Display application header
-        System.out.println("Booking Request Queue");
-        System.out.println("---------------------------");
+        System.out.println("Booking Validation");
 
-        // Initialize booking queue
+        Scanner scanner = new Scanner(System.in);
+
+        // Initialize required components
+        RoomInventory inventory = new RoomInventory();
+        ReservationValidator validator = new ReservationValidator();
         BookingRequestQueue bookingQueue = new BookingRequestQueue();
 
-        // Create booking requests (Arrival order: Abhi, Subha, Vanmathi)
-        Reservation r1 = new Reservation("Abhi", "Single");
-        Reservation r2 = new Reservation("Subha", "Double");
-        Reservation r3 = new Reservation("Vanmathi", "Suite");
+        try {
+            System.out.print("Enter guest name: ");
+            String guestName = scanner.nextLine();
 
-        // Add requests to the queue (FIFO)
-        bookingQueue.addRequest(r1);
-        bookingQueue.addRequest(r2);
-        bookingQueue.addRequest(r3);
+            System.out.print("Enter room type (Single/Double/Suite): ");
+            String roomType = scanner.nextLine();
 
-        // Display queued booking requests in FIFO order
-        int count = 1;
-        while (bookingQueue.hasPendingRequests()) {
-            Reservation current = bookingQueue.processNextRequest();
-            System.out.println("Processing Request #" + count);
-            System.out.println("Guest: " + current.getGuestName());
-            System.out.println("Room Type: " + current.getRoomType());
-            System.out.println("---------------------------");
-            count++;
+            // Validate user input
+            validator.validate(guestName, roomType);
+
+            System.out.println("Booking successfully validated and queued!");
+
+        } catch (InvalidBookingException e) {
+            // Handle domain-specific validation errors
+            System.out.println("Booking failed: " + e.getMessage());
+        } finally {
+            // Ensure the scanner is closed to prevent resource leaks
+            scanner.close();
         }
     }
 }
