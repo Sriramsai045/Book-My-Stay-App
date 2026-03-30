@@ -1,73 +1,66 @@
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Model representing a guest's reservation intent.
- */
-class Reservation {
-    private String guestName;
-    private String roomType;
+// Model representing an individual optional offering
+class Service {
+    private String name;
+    private double price;
 
-    public Reservation(String guestName, String roomType) {
-        this.guestName = guestName;
-        this.roomType = roomType;
+    public Service(String name, double price) {
+        this.name = name;
+        this.price = price;
     }
 
-    public String getGuestName() { return guestName; }
-    public String getRoomType() { return roomType; }
+    public String getName() { return name; }
+    public double getPrice() { return price; }
 }
 
-/**
- * Manager for the FIFO queue.
- */
-class BookingRequestQueue {
-    private Queue<Reservation> queue = new LinkedList<>();
+// Manages the association between reservations and selected services
+class AddOnServiceManager {
+    private Map<String, List<Service>> selections = new HashMap<>();
 
-    public void addRequest(Reservation request) {
-        queue.add(request);
+    public void addService(String reservationId, Service service) {
+        selections.computeIfAbsent(reservationId, k -> new ArrayList<>()).add(service);
     }
 
-    public boolean hasPendingRequests() {
-        return !queue.isEmpty();
-    }
-
-    public Reservation processNextRequest() {
-        return queue.poll();
+    public void displaySelectedServices(String reservationId) {
+        List<Service> services = selections.get(reservationId);
+        if (services != null) {
+            double total = 0;
+            for (Service s : services) {
+                System.out.println("- " + s.getName() + " ($" + s.getPrice() + ")");
+                total += s.getPrice();
+            }
+            System.out.println("Total Add-On Cost: $" + total);
+        }
     }
 }
 
-/**
- * MAIN CLASS UseCase5BookingRequestQueue
- * * Use Case 5: Booking Request (First-Come-First-Served)
- */
-public class Bookmystay {
+public class Bookmystay{
     public static void main(String[] args) {
-        // Display application header
-        System.out.println("Booking Request Queue");
+        System.out.println("Add-On Service Selection");
         System.out.println("---------------------------");
 
-        // Initialize booking queue
-        BookingRequestQueue bookingQueue = new BookingRequestQueue();
+        AddOnServiceManager manager = new AddOnServiceManager();
 
-        // Create booking requests (Arrival order: Abhi, Subha, Vanmathi)
-        Reservation r1 = new Reservation("Abhi", "Single");
-        Reservation r2 = new Reservation("Subha", "Double");
-        Reservation r3 = new Reservation("Vanmathi", "Suite");
+        // Define available services
+        Service wifi = new Service("High-Speed WiFi", 15.0);
+        Service breakfast = new Service("Buffet Breakfast", 25.0);
+        Service spa = new Service("Spa Treatment", 100.0);
 
-        // Add requests to the queue (FIFO)
-        bookingQueue.addRequest(r1);
-        bookingQueue.addRequest(r2);
-        bookingQueue.addRequest(r3);
+        // Simulation for a specific Reservation ID (e.g., from Use Case 6)
+        String resId = "Single-1";
+        System.out.println("Guest Reservation ID: " + resId);
 
-        // Display queued booking requests in FIFO order
-        int count = 1;
-        while (bookingQueue.hasPendingRequests()) {
-            Reservation current = bookingQueue.processNextRequest();
-            System.out.println("Processing Request #" + count);
-            System.out.println("Guest: " + current.getGuestName());
-            System.out.println("Room Type: " + current.getRoomType());
-            System.out.println("---------------------------");
-            count++;
-        }
+        // Guest selects services
+        manager.addService(resId, wifi);
+        manager.addService(resId, breakfast);
+
+        // Display results
+        System.out.println("Selected Add-Ons:");
+        manager.displaySelectedServices(resId);
+        System.out.println("---------------------------");
     }
 }
