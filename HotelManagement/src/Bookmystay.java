@@ -1,66 +1,55 @@
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
-// Model representing an individual optional offering
-class Service {
-    private String name;
-    private double price;
+class RoomInventory {
+    private Map<String, Integer> inventory = new HashMap<>();
 
-    public Service(String name, double price) {
-        this.name = name;
-        this.price = price;
+    public RoomInventory() {
+        inventory.put("Single", 5);
+        inventory.put("Double", 3);
+        inventory.put("Suite", 2);
     }
 
-    public String getName() { return name; }
-    public double getPrice() { return price; }
+    public void restoreRoom(String roomType) {
+        inventory.put(roomType, inventory.getOrDefault(roomType, 0) + 1);
+    }
+
+    public int getAvailability(String roomType) {
+        return inventory.getOrDefault(roomType, 0);
+    }
 }
 
-// Manages the association between reservations and selected services
-class AddOnServiceManager {
-    private Map<String, List<Service>> selections = new HashMap<>();
+class CancellationService {
+    private Stack<String> rollbackHistory = new Stack<>();
 
-    public void addService(String reservationId, Service service) {
-        selections.computeIfAbsent(reservationId, k -> new ArrayList<>()).add(service);
+    public void cancelBooking(String reservationId, String roomType, RoomInventory inventory) {
+        inventory.restoreRoom(roomType);
+
+        String historyRecord = "Released Reservation ID: " + reservationId +
+                "\nUpdated " + roomType + " Room Availability: " + inventory.getAvailability(roomType);
+        rollbackHistory.push(historyRecord);
+
+        System.out.println("Booking cancelled successfully. Inventory restored for room type: " + roomType);
     }
 
-    public void displaySelectedServices(String reservationId) {
-        List<Service> services = selections.get(reservationId);
-        if (services != null) {
-            double total = 0;
-            for (Service s : services) {
-                System.out.println("- " + s.getName() + " ($" + s.getPrice() + ")");
-                total += s.getPrice();
-            }
-            System.out.println("Total Add-On Cost: $" + total);
+    public void showRollbackHistory() {
+        System.out.println("\nRollback History (Most Recent First):");
+        while (!rollbackHistory.isEmpty()) {
+            System.out.println(rollbackHistory.pop());
         }
     }
 }
 
-public class Bookmystay{
+public class Bookmystay {
     public static void main(String[] args) {
-        System.out.println("Add-On Service Selection");
-        System.out.println("---------------------------");
+        System.out.println("Booking Cancellation");
 
-        AddOnServiceManager manager = new AddOnServiceManager();
+        RoomInventory inventory = new RoomInventory();
+        CancellationService cancellationService = new CancellationService();
 
-        // Define available services
-        Service wifi = new Service("High-Speed WiFi", 15.0);
-        Service breakfast = new Service("Buffet Breakfast", 25.0);
-        Service spa = new Service("Spa Treatment", 100.0);
+        cancellationService.cancelBooking("Single-1", "Single", inventory);
 
-        // Simulation for a specific Reservation ID (e.g., from Use Case 6)
-        String resId = "Single-1";
-        System.out.println("Guest Reservation ID: " + resId);
-
-        // Guest selects services
-        manager.addService(resId, wifi);
-        manager.addService(resId, breakfast);
-
-        // Display results
-        System.out.println("Selected Add-Ons:");
-        manager.displaySelectedServices(resId);
-        System.out.println("---------------------------");
+        cancellationService.showRollbackHistory();
     }
 }
