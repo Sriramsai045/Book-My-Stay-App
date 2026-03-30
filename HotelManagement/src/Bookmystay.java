@@ -3,7 +3,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
-// Model representing a guest's reservation intent
+/**
+ * Model representing a guest's reservation intent.
+ */
 class Reservation {
     private String guestName;
     private String roomType;
@@ -51,6 +53,10 @@ class RoomAllocationService {
     }
 }
 
+/**
+ * MAIN CLASS UseCase5BookingRequestQueue
+ * * Use Case 5: Booking Request (First-Come-First-Served)
+ */
 public class Bookmystay {
     public static void main(String[] args) {
         System.out.println("Room Allocation Processing");
